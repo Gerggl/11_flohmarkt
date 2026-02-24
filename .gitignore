@@ -1,0 +1,9 @@
+# User-Uploads
+# Ignoriere den Uploads-Ordner
+/uploades/*
+# der Uploads-Ordner soll in Git bleiben
+!/uploades/.gitkeep
+
+# Sicherheit
+# Ignoriere die DB-Zugangsdaten (Passwörter)
+config.php
