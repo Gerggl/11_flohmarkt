@@ -39,18 +39,18 @@ session_destroy();
             </div>
 
             <div class="auth-content text-center" style="align-items: center; text-align: center;">
-                <div class="form-header" style="margin-bottom: 2rem;">
+                <div class="form-header">
                     <h1>Erfolgreich abgemeldet</h1>
-                    <p class="text-sub">Sie wurden sicher ausgeloggt.</p>
+                    <p style="color: var(--text-muted); opacity: 0.8;">Sie wurden sicher ausgeloggt.</p>
                 </div>
 
-                <div class="success-icon" style="font-size: 4rem; margin-bottom: 2rem;">👋</div>
+                <div class="success-icon" style="font-size: 4rem;">👋</div>
                 
-                <a href="Login.php" class="btn btn-primary" style="max-width: 300px;">Erneut anmelden</a>
+                <a href="Login.php" class="btn btn-primary w-full" style="max-width: 320px;">Erneut anmelden</a>
 
-                <div class="footer-text">
-                    <a href="Login.php">Zurück zum Login</a>
-                </div>
+                <p style="margin-top: 2rem; font-size: 0.9rem;">
+                    <a href="Login.php" style="color: var(--primary); font-weight: 600;">Zurück zum Login</a>
+                </p>
             </div>
         </div>
     </div>

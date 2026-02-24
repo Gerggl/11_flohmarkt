@@ -1,6 +1,6 @@
 <?php
+session_start();
 require_once 'db.php';
-
 
 $produkt_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -8,7 +8,6 @@ if ($produkt_id <= 0) {
     header("Location: produkt_liste.php");
     exit;
 }
-
 
 $sql = "SELECT a.*, k.bezeichnung AS kategorie
         FROM artikel a
@@ -19,38 +18,41 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute(['id' => $produkt_id]);
 $produkt = $stmt->fetch(PDO::FETCH_ASSOC);
 
-
 if (!$produkt) {
-    die("Produkt nicht gefunden.");
+    header("Location: produkt_liste.php");
+    exit;
 }
 
-// Kontakt-Logik
 $message_status = '';
+$message_type = 'success';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
     
     $nachricht = "";
     if (isset($_POST['kontakt_senden'])) {
-        $nachricht = "Interesse an " . $produkt['titel'];
-        $message_status = 'Anfrage wurde erfolgreich gesendet!';
+        $nachricht = "Interesse";
+        $message_status = 'Anfrage wurde gesendet.';
     } elseif (isset($_POST['kauf_senden'])) {
-        $nachricht = "KAUFANFRAGE für " . $produkt['titel'] . " (Preis: " . number_format($produkt['preis'], 2, ',', '.') . " €)";
-        $message_status = 'Kaufanfrage wurde erfolgreich gesendet!';
+        $nachricht = "Kaufanfrage";
+        $message_status = 'Kaufanfrage wurde gesendet.';
     }
 
     if ($nachricht) {
         try {
-            $sql_kontakt = "INSERT INTO anfragen (artikel_id, absender_id, nachricht) 
-                            VALUES (:artikel_id, :absender_id, :nachricht)";
+            $sql_kontakt = "INSERT INTO interessenten (artikel_id, benutzer_id, zeitpunkt) 
+                            VALUES (:artikel_id, :benutzer_id, NOW())";
             $stmt_kontakt = $pdo->prepare($sql_kontakt);
             $stmt_kontakt->execute([
                 'artikel_id' => $produkt_id,
-                'absender_id' => $_SESSION['user_id'],
-                'nachricht' => $nachricht
+                'benutzer_id' => $_SESSION['user_id']
             ]);
         } catch (PDOException $e) {
-            $message_status = 'Fehler beim Senden der Anfrage.';
+            $message_status = 'Fehler beim Senden.';
+            $message_type = 'error';
         }
     }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_SESSION['user_id'])) {
+    header('Location: Login.php');
+    exit;
 }
 ?>
 
@@ -58,23 +60,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title><?= htmlspecialchars($produkt['titel']) ?> | Details</title>
+    <title><?= htmlspecialchars($produkt['titel']) ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+        .back-link:hover { color: var(--primary); }
+    </style>
 </head>
 <body>
 
     <div class="app-layout">
-
         <?php include 'sidebar.php'; ?>
 
         <main class="app-main">
-            <a href="produkt_liste.php" class="back-link">
-                <span>←</span> Zurück zur Übersicht
-            </a>
+            <a href="produkt_liste.php" class="back-link">← Zurück zur Kollektion</a>
 
             <?php if ($message_status): ?>
-                <div class="alert alert-success mt-4">
+                <div class="alert alert-<?= $message_type ?>">
                     <?= htmlspecialchars($message_status) ?>
                 </div>
             <?php endif; ?>
@@ -83,43 +93,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
                 
                 <div class="image-section">
                     <?php if (!empty($produkt['bild_pfad'])): ?>
-                        <img src="<?= htmlspecialchars($produkt['bild_pfad']) ?>" class="product-image-large" alt="<?= htmlspecialchars($produkt['titel']) ?>">
+                        <img src="<?= htmlspecialchars($produkt['bild_pfad']) ?>" class="product-image-large" alt="Produkt">
                     <?php else: ?>
-                        <div class="image-placeholder">
-                            📷
+                        <div class="product-image-large" style="background: var(--bg-main); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                            Kein Bild verfügbar
                         </div>
                     <?php endif; ?>
                 </div>
 
                 <div class="info-section">
-                    <span class="category-badge">
+                    <span class="cat-pill">
                         <?= htmlspecialchars($produkt['kategorie'] ?? 'Allgemein') ?>
                     </span>
                     
-                    <h1 class="detail-title"><?= htmlspecialchars($produkt['titel']) ?></h1>
+                    <h1 style="margin-top: 1rem; font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em;"><?= htmlspecialchars($produkt['titel']) ?></h1>
                     
-                    <div class="detail-desc">
-                        <?= nl2br(htmlspecialchars($produkt['beschreibung'] ?? 'Keine Beschreibung verfügbar.')) ?>
+                    <div style="margin: 2rem 0; color: var(--text-muted); font-size: 1.1rem; line-height: 1.6;">
+                        <?= nl2br(htmlspecialchars($produkt['beschreibung'] ?? '')) ?>
                     </div>
 
-                    <div class="price-box">
-                        <div class="price-label">Preisvorstellung</div>
-                        <div class="price-tag"><?= number_format($produkt['preis'], 2, ',', '.') ?> €</div>
+                    <div class="stat-card">
+                        <span class="stat-label">Preisvorstellung</span>
+                        <span class="price-tag"><?= number_format($produkt['preis'], 2, ',', '.') ?> €</span>
                         
-                        <?php if (isset($_SESSION['user_id']) && isset($produkt['bid']) && $_SESSION['user_id'] == $produkt['bid']): ?>
-                            <a href="produkt_bearbeiten.php?id=<?= $produkt['id'] ?>" class="btn btn-secondary w-full p-4 mt-4" style="text-align: center;">
-                                Produkt bearbeiten
-                            </a>
-                        <?php else: ?>
-                            <form action="" method="POST">
-                                <button type="submit" name="kontakt_senden" class="btn btn-primary w-full p-4 mt-4">
-                                    Verkäufer kontaktieren
-                                </button>
-                                <button type="submit" name="kauf_senden" class="btn btn-flohmarkt w-full p-4 mt-4">
-                                    Produkt kaufen
-                                </button>
-                            </form>
-                        <?php endif; ?>
+                        <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+                            <?php if (isset($_SESSION['user_id']) && isset($produkt['bid']) && $_SESSION['user_id'] == $produkt['bid']): ?>
+                                <a href="produkt_bearbeiten.php?id=<?= $produkt['id'] ?>" class="btn btn-primary w-full">Inserat bearbeiten</a>
+                                <a href="meine_artikel.php" class="btn btn-secondary w-full">In Meinen Artikeln verwalten</a>
+                            <?php else: ?>
+                                <form action="" method="POST" style="display: flex; flex-direction: column; gap: 1rem;">
+                                    <button type="submit" name="kontakt_senden" class="btn btn-contact w-full">Verkäufer kontaktieren</button>
+                                    <button type="submit" name="kauf_senden" class="btn btn-flohmarkt w-full">Produkt kaufen</button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
 
