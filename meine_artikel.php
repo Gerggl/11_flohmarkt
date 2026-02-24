@@ -19,6 +19,7 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute(['user_id' => $user_id]);
 $produkte = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// SQL-Statement
 foreach ($produkte as &$produkt) {
     $sql_interessenten = "SELECT b.vorname, b.nachname, b.email, an.zeitpunkt
                           FROM interessenten an
