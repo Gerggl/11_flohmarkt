@@ -18,3 +18,11 @@ function enthaeltVerboteneWoerter($text)
     }
     return false;
 }
+
+function istPasswortSicher($passwort)
+{
+    //regEx
+    $regEx = '/^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%?&]{8,}$/';
+
+    return preg_match($regEx, $passwort);
+}

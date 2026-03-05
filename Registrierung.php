@@ -28,8 +28,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         !empty($passwort_zwei) &&
         $agb == 1
     ) {
+        require_once("function.php");
+
         if ($passwort != $passwort_zwei) {
             $message = "Passwörter sind nicht gleich!";
+        } elseif (!istPasswortSicher($passwort)) {
+            $message = "Ungültiges Passwort! Bitte geben Sie ein anderes ein!";
         } else {
             $passwordHash = password_hash($passwort, PASSWORD_DEFAULT);
             require_once("db.php");
@@ -55,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ":agb" => $agb
                 ));
 
-                header("Location:login.php");
+                header("Location: login.php");
                 exit;
             } catch (PDOException $e) {
                 if ($e->getCode() == 23000) {
@@ -73,12 +77,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Konto erstellen</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <div class="auth-wrapper">
@@ -96,12 +102,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <span>Flohmarkt</span>
                         </div>
                         <h1>Registrieren</h1>
-                        <?php if (!empty($message)): ?>
-                            <div class="alert alert-error">
-                                <?= htmlspecialchars($message) ?>
-                            </div>
-                        <?php endif; ?>
                     </div>
+
+                    <?php if (!empty($message)): ?>
+                        <div class="alert alert-error">
+                            <?= htmlspecialchars($message) ?>
+                        </div>
+                    <?php endif; ?>
 
                     <div class="form-grid">
                         <div class="form-group">
@@ -147,10 +154,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <label for="ort">Ort</label>
                             <input type="text" name="ort" id="ort" class="input-control" required placeholder="Stadt">
                         </div>
-                        
+
                         <div class="form-group full-col">
-                             <label for="tel">Mobilnummer</label>
-                             <input type="tel" name="telefon" id="tel" class="input-control" required placeholder="+49 ...">
+                            <label for="tel">Mobilnummer</label>
+                            <input type="tel" name="telefon" id="tel" class="input-control" required placeholder="+49 ...">
                         </div>
 
                         <div class="form-group">
@@ -182,5 +189,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
 
 </body>
-</html>
 
+</html>

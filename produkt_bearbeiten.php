@@ -37,7 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $preis        = trim($_POST['preis'] ?? '');
     $kid          = $_POST['kid'] ?? '';
 
-    if ($titel === '' || $beschreibung === '' || $preis === '' || $preis < 0 || $kid === '') {
+    // Verbotene Begriffe prüfen (z.B. Waffen, Drogen)
+    require_once("function.php");
+
+    if (enthaeltVerboteneWoerter($titel) || enthaeltVerboteneWoerter($beschreibung)) {
+        $error = "Ups! Dein Inserat enthält Begriffe, die auf unserem Flohmarkt nicht erlaubt sind. Bitte überprüfe Titel und Beschreibung auf unzulässige Inhalte (z.B. Waffen oder Ähnliches).";
+    } elseif ($titel === '' || $beschreibung === '' || $preis === '' || $preis < 0 || $kid === '') {
         $error = "Bitte alle Pflichtfelder korrekt ausfüllen.";
     }
 
@@ -110,13 +115,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h1>Produkt bearbeiten</h1>
             </div>
 
-            <?php if (isset($error)) : ?>
-                <div class="alert alert-error">
-                    <?= htmlspecialchars($error) ?>
-                </div>
-            <?php endif; ?>
+            <div style="max-width: 800px;">
+                <?php if (isset($error)) : ?>
+                    <div class="alert alert-error">
+                        <?= htmlspecialchars($error) ?>
+                    </div>
+                <?php endif; ?>
 
-            <div class="glass-panel" style="padding: 2.5rem; max-width: 800px;">
+                <div class="glass-panel" style="padding: 2.5rem;">
                 <form action="" method="POST" enctype="multipart/form-data">
                     <div class="form-grid">
                         <div class="form-group full-col">
@@ -156,6 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="submit" class="btn btn-primary" style="flex: 2;">Änderungen Speichern</button>
                     </div>
                 </form>
+                </div>
             </div>
         </main>
     </div>
