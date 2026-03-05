@@ -41,3 +41,4 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a href="abmelden.php" class="nav-link" style="margin-top: auto; color: var(--text-muted);">Abmelden</a>
     </nav>
 </aside>
+

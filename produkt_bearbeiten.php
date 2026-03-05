@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':beschreibung' => $beschreibung,
             ':preis'        => $preis,
             ':bild_pfad'    => $bildPfad,
-            ':kid'          => $kid,
+            ':kid'          => (int)$kid,
             ':id'           => $id,
             ':bid'          => $_SESSION['user_id']
         ]);
@@ -162,3 +162,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 </body>
 </html>
+

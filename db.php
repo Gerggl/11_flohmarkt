@@ -19,3 +19,4 @@ try {
     echo "Datenbankverbindung fehlgeschlagen: " . $e->getMessage();
     exit;
 }
+

@@ -9,9 +9,10 @@ require_once 'db.php';
 
 $user_id = $_SESSION['user_id'];
 
-$sql = "SELECT a.id, a.titel, a.preis, a.bild_pfad, k.bezeichnung AS kategorie
+$sql = "SELECT a.id, a.titel, a.preis, a.bild_pfad, a.gekauft_von, k.bezeichnung AS kategorie, b.vorname AS k_vorname, b.nachname AS k_nachname
         FROM artikel a
         LEFT JOIN kategorie k ON a.kid = k.kid
+        LEFT JOIN benutzer b ON a.gekauft_von = b.bid
         WHERE a.bid = :user_id
         ORDER BY a.id DESC";
 
@@ -19,9 +20,8 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute(['user_id' => $user_id]);
 $produkte = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// SQL-Statement
 foreach ($produkte as &$produkt) {
-    $sql_interessenten = "SELECT b.vorname, b.nachname, b.email, an.zeitpunkt
+    $sql_interessenten = "SELECT b.bid, b.vorname, b.nachname, b.email, an.zeitpunkt
                           FROM interessenten an
                           JOIN benutzer b ON an.benutzer_id = b.bid
                           WHERE an.artikel_id = :artikel_id
@@ -52,6 +52,24 @@ unset($produkt);
                 <h1>Meine Artikel</h1>
             </div>
 
+            <?php if (isset($_GET['status']) && $_GET['status'] === 'success'): ?>
+                <div class="alert alert-success" style="margin-bottom: 2rem;">
+                    Der Artikel wurde erfolgreich als verkauft markiert.
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['status']) && $_GET['status'] === 'deleted'): ?>
+                <div class="alert alert-success" style="margin-bottom: 2rem; border-color: var(--error); color: var(--error); background: #FDF2F2;">
+                    Der Artikel wurde erfolgreich gelöscht.
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['status']) && strpos($_GET['status'], 'error') !== false): ?>
+                <div class="alert alert-error" style="margin-bottom: 2rem;">
+                    Es ist ein Fehler beim Löschen aufgetreten.
+                </div>
+            <?php endif; ?>
+
             <div class="table-container">
                 <table class="data-table">
                     <thead>
@@ -60,8 +78,8 @@ unset($produkt);
                             <th>Bezeichnung</th>
                             <th>Kategorie</th>
                             <th>Preis</th>
-                            <th style="width: 250px;">Anfragen</th>
-                            <th class="text-right">Aktionen</th>
+                            <th style="width: 250px;" class="text-center">Anfragen</th>
+                            <th class="text-center">Aktionen</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,25 +106,36 @@ unset($produkt);
                                 </td>
                                 <td><span class="cat-pill"><?= htmlspecialchars($produkt['kategorie'] ?? 'Sonstiges') ?></span></td>
                                 <td style="font-weight: 600; color: var(--primary);"><?= number_format($produkt['preis'], 2, ',', '.') ?> €</td>
-                                <td>
-                                    <?php if (count($produkt['interessenten']) > 0): ?>
-                                        <select class="interest-select">
-                                            <option selected disabled>Interessenten (<?= count($produkt['interessenten']) ?>)</option>
-                                            <?php foreach ($produkt['interessenten'] as $int): ?>
-                                                <option>
-                                                    <?= htmlspecialchars($int['vorname'] . ' ' . $int['nachname']) ?> 
-                                                    (<?= htmlspecialchars($int['email']) ?>)
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                <td class="text-center">
+                                    <?php if ($produkt['gekauft_von']): ?>
+                                        <div style="background: rgba(34, 197, 94, 0.1); color: #16a34a; padding: 0.5rem; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 600; text-align: center; border: 1px solid rgba(34, 197, 94, 0.2);">
+                                            Verkauft an:<br>
+                                            <?= htmlspecialchars($produkt['k_vorname'] . ' ' . $produkt['k_nachname']) ?>
+                                        </div>
+                                    <?php elseif (count($produkt['interessenten']) > 0): ?>
+                                        <form action="verkauf_bestaetigung.php" method="GET">
+                                            <input type="hidden" name="artikel_id" value="<?= $produkt['id'] ?>">
+                                            <select name="kaeufer_id" class="interest-select" required onchange="this.form.submit()">
+                                                <option selected disabled>Verkaufen an...</option>
+                                                <?php foreach ($produkt['interessenten'] as $int): ?>
+                                                    <option value="<?= $int['bid'] ?>">
+                                                        <?= htmlspecialchars($int['vorname'] . ' ' . $int['nachname']) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </form>
                                     <?php else: ?>
                                         <span style="font-size: 0.85rem; color: var(--text-muted);">Noch kein Interesse</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="text-right">
-                                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                                        <a href="produkt_detail.php?id=<?= $produkt['id'] ?>" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Details</a>
-                                        <a href="produkt_bearbeiten.php?id=<?= $produkt['id'] ?>" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Bearbeiten</a>
+                                <td class="text-center">
+                                    <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                                        <a href="produkt_detail.php?id=<?= $produkt['id'] ?>" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; flex: 1;">Details</a>
+                                        <a href="produkt_bearbeiten.php?id=<?= $produkt['id'] ?>" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; flex: 1;">Bearbeiten</a>
+                                        <form action="produkt_loeschen.php" method="POST" onsubmit="return confirm('Möchten Sie diesen Artikel wirklich unwiderruflich löschen?')" style="flex: 1;">
+                                            <input type="hidden" name="artikel_id" value="<?= $produkt['id'] ?>">
+                                            <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: var(--error); color: white; flex: 1; height:40px">Löschen</button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -119,3 +148,4 @@ unset($produkt);
     </div>
 </body>
 </html>
+

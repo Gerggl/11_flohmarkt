@@ -43,7 +43,7 @@ $produkte = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <th>Bezeichnung</th>
                             <th>Kategorie</th>
                             <th>Preis</th>
-                            <th class="text-right">Aktionen</th>
+                            <th class="text-center">Aktionen</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -72,8 +72,8 @@ $produkte = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </td>
                                 <td><span class="cat-pill"><?= htmlspecialchars($produkt['kategorie'] ?? 'Allgemein') ?></span></td>
                                 <td style="font-weight: 600; color: var(--primary);"><?= number_format($produkt['preis'], 2, ',', '.') ?> €</td>
-                                <td class="text-right">
-                                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                <td class="text-center">
+                                    <div style="display: flex; gap: 0.5rem; justify-content: center;">
                                         <a href="produkt_detail.php?id=<?= $produkt['id'] ?>" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Details</a>
                                         <?php if (isset($_SESSION['user_id']) && $produkt['bid'] == $_SESSION['user_id']): ?>
                                             <a href="produkt_bearbeiten.php?id=<?= $produkt['id'] ?>" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Bearbeiten</a>
@@ -90,3 +90,4 @@ $produkte = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </body>
 </html>
+

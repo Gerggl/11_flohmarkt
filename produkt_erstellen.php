@@ -18,62 +18,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $preis        = trim($_POST['preis'] ?? '');
     $kid          = $_POST['kid'] ?? '';
 
-    if ($titel === '' || $beschreibung === '' || $preis === '' || $preis < 0 || $kid === '') {
-        $error = "Bitte alle Pflichtfelder korrekt ausfüllen.";
-    }
+    require_once("funktionen.php");
 
-    $bildPfad = null;
-    if (!isset($error) && isset($_FILES['bild']) && $_FILES['bild']['error'] === UPLOAD_ERR_OK) {
-        $erlaubteMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $_FILES['bild']['tmp_name']);
-        finfo_close($finfo);
+    //Aufruf der Funktion zur Prüfung, ob verbotene Worte verwendet wurden.
+    require_once("funktionen.php");
 
-        if (!in_array($mimeType, $erlaubteMimeTypes)) {
-            $error = "Nur JPG, PNG oder GIF Bilder sind erlaubt.";
-        } else {
-            if (!file_exists('uploads')) mkdir('uploads', 0777, true);
-            $endung = pathinfo($_FILES['bild']['name'], PATHINFO_EXTENSION);
-            $dateiname = uniqid('img_', true) . '.' . $endung;
-            $zielPfad = 'uploads/' . $dateiname;
+    if (enthaeltVerboteneWoerter($titel) || enthaeltVerboteneWoerter($beschreibung)) {
+        die("Fehler: Dein Inserat enthält Begriffe, die auf unserem Flohmarkt nicht erlaubt sind. \n Inserat wird nicht hochgeladen.");
+    } else {
+        if ($titel === '' || $beschreibung === '' || $preis === '' || $preis < 0 || $kid === '') {
+            $error = "Bitte alle Pflichtfelder korrekt ausfüllen.";
+        }
 
-            if (move_uploaded_file($_FILES['bild']['tmp_name'], $zielPfad)) {
-                $bildPfad = $zielPfad;
+        $bildPfad = null;
+        if (!isset($error) && isset($_FILES['bild']) && $_FILES['bild']['error'] === UPLOAD_ERR_OK) {
+            $erlaubteMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $_FILES['bild']['tmp_name']);
+            finfo_close($finfo);
+
+            if (!in_array($mimeType, $erlaubteMimeTypes)) {
+                $error = "Nur JPG, PNG oder GIF Bilder sind erlaubt.";
             } else {
-                $error = "Fehler beim Speichern des Bildes.";
+                if (!file_exists('uploads')) mkdir('uploads', 0777, true);
+                $endung = pathinfo($_FILES['bild']['name'], PATHINFO_EXTENSION);
+                $dateiname = uniqid('img_', true) . '.' . $endung;
+                $zielPfad = 'uploads/' . $dateiname;
+
+                if (move_uploaded_file($_FILES['bild']['tmp_name'], $zielPfad)) {
+                    $bildPfad = $zielPfad;
+                } else {
+                    $error = "Fehler beim Speichern des Bildes.";
+                }
             }
         }
-    }
 
-    if (!isset($error)) {
-        $sql = "INSERT INTO artikel 
+        if (!isset($error)) {
+            $sql = "INSERT INTO artikel 
                 (titel, beschreibung, preis, bild_pfad, kid, bid) 
                 VALUES (:titel, :beschreibung, :preis, :bild_pfad, :kid, :bid)";
 
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            ':titel'        => $titel,
-            ':beschreibung' => $beschreibung,
-            ':preis'        => $preis,
-            ':bild_pfad'    => $bildPfad,
-            ':kid'          => $kid,
-            ':bid'          => $_SESSION['user_id']
-        ]);
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':titel'        => $titel,
+                ':beschreibung' => $beschreibung,
+                ':preis'        => $preis,
+                ':bild_pfad'    => $bildPfad,
+                ':kid'          => (int)$kid,
+                ':bid'          => $_SESSION['user_id']
+            ]);
 
-        header("Location: erfolg.php");
-        exit;
+            header("Location: erfolg.php");
+            exit;
+        }
     }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neues Inserat</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <div class="app-layout">
@@ -137,4 +148,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
 </body>
+
 </html>

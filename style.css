@@ -1,24 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap');
 
 :root {
-    --bg-app: #FDFBF7;
-    --bg-card: #FFFFFF;
-    --bg-sidebar: #F7F3EE;
+    --bg-app: #fcfbf9;
+    --bg-card: #ffffff;
+    --bg-sidebar: #f7f5f2;
 
-    --primary: #7E8E7A;
-    --primary-light: #F0F4EF;
-    --secondary: #D67D5C;
-    --secondary-light: #FBECE6;
+    --primary: #556B2F;
+    /* Dark Olive Green */
+    --primary-light: #f0f4ea;
+    --secondary: #A0522D;
+    /* Sienna */
+    --secondary-light: #fff5f0;
 
-    --text-main: #333333;
-    --text-muted: #756F67;
-    --text-inv: #FFFFFF;
+    --text-main: #2d2d2d;
+    --text-muted: #6b6b6b;
+    --text-inv: #ffffff;
 
-    --border: #E8E2D6;
-    --border-focus: #7E8E7A;
+    --border: #e5e5e5;
+    --border-focus: #556B2F;
 
-    --success: #6A8E61;
-    --error: #C95E5E;
+    --success: #2e7d32;
+    --error: #d32f2f;
 
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
     --shadow-md: 0 10px 30px rgba(51, 51, 51, 0.05);
@@ -228,8 +230,8 @@ a {
 }
 
 .btn-primary:hover {
-    background: #6D7D69;
-    box-shadow: 0 5px 15px rgba(126, 142, 122, 0.3);
+    background: var(--secondary);
+    box-shadow: 0 5px 15px rgba(160, 82, 45, 0.3);
 }
 
 .btn-secondary {
@@ -319,15 +321,15 @@ input[type="file"].input-control:hover {
 }
 
 .alert-success {
-    background: #EBF7EE;
+    background: var(--primary-light);
     color: var(--success);
-    border: 1px solid rgba(106, 142, 97, 0.2);
+    border: 1px solid rgba(46, 125, 50, 0.2);
 }
 
 .alert-error {
-    background: #FDF2F2;
+    background: #fff5f5;
     color: var(--error);
-    border: 1px solid rgba(201, 94, 94, 0.2);
+    border: 1px solid rgba(211, 47, 47, 0.2);
 }
 
 .detail-grid {
@@ -408,13 +410,13 @@ input[type="file"].input-control:hover {
 }
 
 .btn-flohmarkt:hover {
-    background: #C46C4D;
-    box-shadow: 0 8px 25px rgba(214, 125, 92, 0.4);
+    background: #8B4513;
+    box-shadow: 0 8px 25px rgba(160, 82, 45, 0.4);
 }
 
 .btn-contact:hover {
-    background: #6D7D69;
-    box-shadow: 0 8px 25px rgba(126, 142, 122, 0.4);
+    background: #3e4e22;
+    box-shadow: 0 8px 25px rgba(85, 107, 47, 0.4);
 }
 
 .form-grid {
@@ -450,6 +452,10 @@ input[type="file"].input-control:hover {
 
 .text-right {
     text-align: right;
+}
+
+.text-center {
+    text-align: center;
 }
 
 .auth-wrapper {
@@ -534,8 +540,7 @@ input[type="file"].input-control:hover {
 }
 
 .data-table tr:hover {
-    background: #FFFAF5;
-    /* Very subtle warm hover */
+    background: var(--bg-sidebar);
 }
 
 .product-image-thumb {

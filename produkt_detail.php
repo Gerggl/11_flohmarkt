@@ -9,9 +9,10 @@ if ($produkt_id <= 0) {
     exit;
 }
 
-$sql = "SELECT a.*, k.bezeichnung AS kategorie
+$sql = "SELECT a.*, k.bezeichnung AS kategorie, b.email AS verkaeufer_email
         FROM artikel a
         LEFT JOIN kategorie k ON a.kid = k.kid
+        LEFT JOIN benutzer b ON a.bid = b.bid
         WHERE a.id = :id";
 
 $stmt = $pdo->prepare($sql);
@@ -45,6 +46,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
                 'artikel_id' => $produkt_id,
                 'benutzer_id' => $_SESSION['user_id']
             ]);
+
+            if (isset($_POST['kontakt_senden'])) {
+                $email_param = urlencode($produkt['verkaeufer_email']);
+                $titel_param = urlencode($produkt['titel']);
+                header("Location: kontakt_erfolg.php?email=$email_param&titel=$titel_param");
+                exit;
+            }
         } catch (PDOException $e) {
             $message_status = 'Fehler beim Senden.';
             $message_type = 'error';
@@ -136,3 +144,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
 
 </body>
 </html>
+
